@@ -60,7 +60,7 @@ def putText2(im:np.ndarray, _txt:str, origin:tuple=None):
 class VideoCapture:
     def __init__(self,filepath:str,fps=30,res_wdht='1280x960',src=0):
         '''
-        Given location & video properties, start recording w/ a buffer (and add timestamp)
+        Given save location & video properties, start recording w/ a buffer (and add timestamp)
           filepath: desired path to save. must be avi or mp4
           fps: desired frames per second of video. must be integer
           resWdHd: integer tuple of desired resolution
@@ -83,6 +83,7 @@ class VideoCapture:
         )
         # todo: set cap properties
         print('des fps:',fps)
+        assert os.path.splitext(self.path) in ['.avi','.mp4'], "invalid format, either avi or mp4"
         self.out = cv2.VideoWriter(self.path,fourcc=fourcc,fps=self.fps,frameSize=res)
         c = self.cap
         camfps = c.get(cv2.CAP_PROP_FPS)
