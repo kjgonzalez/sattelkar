@@ -44,6 +44,10 @@ dtparam=pwr_led_activelow=off
 #### HDMI
 todo
 
+### Initial Setup of RPI
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install vim screen
 
 ### Installation
 * Raspberry Pi:
