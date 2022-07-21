@@ -58,7 +58,7 @@ def putText2(im:np.ndarray, _txt:str, origin:tuple=None):
     cv2.putText(im, _txt, origin, font, txtht, (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
 
 class VideoCapture:
-    def __init__(self,filepath:str,fps=30,res_wdht='1280x960',src=0):
+    def __init__(self,filepath:str,src=0,fps=30,res_wdht='1280x960'):
         '''
         Given save location & video properties, start recording w/ a buffer (and add timestamp)
           filepath: desired path to save. must be avi or mp4
@@ -83,7 +83,7 @@ class VideoCapture:
         )
         # todo: set cap properties
         print('des fps:',fps)
-        assert os.path.splitext(self.path) in ['.avi','.mp4'], "invalid format, either avi or mp4"
+        assert os.path.splitext(self.path)[1] in ['.avi','.mp4'], "invalid format, either avi or mp4"
         self.out = cv2.VideoWriter(self.path,fourcc=fourcc,fps=self.fps,frameSize=res)
         c = self.cap
         camfps = c.get(cv2.CAP_PROP_FPS)
@@ -143,11 +143,14 @@ def check_video(path):
     print('imgshape:',frames[0].shape)
     vid.release()
 
-
+def choose_video_source():
+    # todo
+    pass
 
 if(__name__ == '__main__'):
     import argparse
     p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # todo: list available sources
     p.add_argument('--saveloc', help='where to save video', default='data/vid.avi')
     p.add_argument('--fps', default=10, type=int, help='fps')
     p.add_argument('--res', type=str, default="1280x720", help='desired resolution')
@@ -156,7 +159,7 @@ if(__name__ == '__main__'):
     _fps = args.fps
     _res = args.res
     print('starting...')
-    v = VideoCapture(_saveloc,_fps,_res) # , _fps, _res)
+    v = VideoCapture(_saveloc,src=0,fps=_fps,res_wdht=_res) # , _fps, _res)
     v.record_n_seconds(10)
     print('done')
     check_video(_saveloc)
