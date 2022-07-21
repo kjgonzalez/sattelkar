@@ -9,23 +9,12 @@ _tmax = 5 # seconds
 
 def recaudio(nsec=10):
     stream=audio.open(format=pyaudio.paInt16,channels=2,rate=44100,input=True,frames_per_buffer=1024)
-    print('starting...')
+
+
     frames=[]
     for i in range(0,int(44100/1024*nsec)):
         data=stream.read(1024)
         frames.append(data)
-    print('done')
-    stream.stop_stream()
-    stream.close()
-    audio.terminate()
-def recaudio(nsec=10):
-    stream=audio.open(format=pyaudio.paInt16,channels=2,rate=44100,input=True,frames_per_buffer=1024)
-    print('starting...')
-    frames=[]
-    for i in range(0,int(44100/1024*nsec)):
-        data=stream.read(1024)
-        frames.append(data)
-    print('done')
     stream.stop_stream()
     stream.close()
     audio.terminate()
