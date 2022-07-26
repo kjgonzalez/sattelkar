@@ -58,7 +58,7 @@ def putText2(im:np.ndarray, _txt:str, origin:tuple=None):
     cv2.putText(im, _txt, origin, font, txtht, (255, 255, 255), thickness=1, lineType=cv2.LINE_AA)
 
 class VideoCapture:
-    def __init__(self,filepath:str,src=0,fps=30,res_wdht='1280x960'):
+    def __init__(self,src=0,fps=30,res_wdht='1280x960',verbose=False):
         '''
         Given save location & video properties, start recording w/ a buffer (and add timestamp)
           filepath: desired path to save. must be avi or mp4
@@ -66,68 +66,65 @@ class VideoCapture:
           resWdHd: integer tuple of desired resolution
 
         '''
-        self.path = filepath
-        self.fps = fps
-        self.imwd = int(res_wdht.split('x')[0])
-        self.imht = int(res_wdht.split('x')[1])
-        self.src = src
-        self.imbuf = [] # todo: implement buffer, not just saving directly
-        self.cap = cv2.VideoCapture(self.src)
-        self.cap.set(cv2.CAP_PROP_FPS,1000)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.imwd)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.imht)
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        res = (
-            int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        )
-        # todo: set cap properties
-        print('des fps:',fps)
-        assert os.path.splitext(self.path)[1] in ['.avi','.mp4'], "invalid format, either avi or mp4"
-        self.out = cv2.VideoWriter(self.path,fourcc=fourcc,fps=self.fps,frameSize=res)
-        c = self.cap
-        camfps = c.get(cv2.CAP_PROP_FPS)
-        camres = f'{int(c.get(cv2.CAP_PROP_FRAME_WIDTH))} x {int(c.get(cv2.CAP_PROP_FRAME_HEIGHT))}'
-        print('cam fps:',camfps)
-        print('cam res:',camres)
-        camres = f'{int(self.out.get(cv2.CAP_PROP_FRAME_WIDTH))} x {int(self.out.get(cv2.CAP_PROP_FRAME_HEIGHT))}'
-        print('vid fps:',self.out.get(cv2.CAP_PROP_FPS))
-        print('cam res:',camres)
-        # self.cap.release()
+
+        self._fps = fps
+        self._imwd = int(res_wdht.split('x')[0])
+        self._imht = int(res_wdht.split('x')[1])
+        self._src = src
+        self._imbuf = [] # todo: implement buffer, not just saving directly
+        self._cap:cv2.VideoCapture = None
+        self._v=verbose
 
     def opencap(self):
         ''' use to open or reopen a video capture object (for camera) '''
         # todo: if already open, close first
-        self.cap = cv2.VideoCapture(self.src)
-        self.cap.set(cv2.CAP_PROP_FPS,self.fps)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.imwd)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.imht)
-    def record_n_seconds(self,nseconds:int):
-        nmax = float(nseconds)
+        self._cap = cv2.VideoCapture(self._src)
+        self._cap.set(cv2.CAP_PROP_FPS, 1000) # attempt to set highest FPS
+        self._cap.set(cv2.CAP_PROP_FRAME_WIDTH, self._imwd)
+        self._cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self._imht)
+        c = self._cap
+        c.get(cv2.CAP_PROP_FPS)
+        ret, frame = c.read()
+        camfps = c.get(cv2.CAP_PROP_FPS)
+        if(self._v):print('cam res: {:d} x {:d}'.format(*frame.shape[:2]))
+        if(self._v):print('cam fps:', self._fps)
+        return True # capture is ready
 
-        c = self.cap # convenience
+    def closecap(self):
+        self._cap.release()
+
+    def record_n_seconds(self,filepath:str,nseconds:int):
+        assert os.path.splitext(filepath)[1] in ['.avi','.mp4'], "invalid format, avi or mp4"
+        nmax = float(nseconds)
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        res = (
+            int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        )
+        out = cv2.VideoWriter(filepath, fourcc=fourcc, fps=self._fps, frameSize=res)
+
+        c = self._cap # convenience
         frame:np.ndarray = None
-        p = PeriodAuto(1/self.fps)
+        p = PeriodAuto(1 / self._fps)
 
         t_el = time.time()
         t0 = time.time()
         ret,frame = c.read()
-        self.out.write(frame)
+        out.write(frame)
         n=1
-        while(self.cap.isOpened() and nmax > time.time()-t0):
+        while(self._cap.isOpened() and nmax > time.time() - t0):
             ret,frame = c.read()
             putText2(frame,tstamp())
             if(time.time()-t_el>=p.per):
                 p.update(time.time()-t_el)
                 t_el = time.time()
-                self.out.write(frame)
+                out.write(frame)
                 n+=1
         t_total = time.time()-t0
-        print('frames saved:',n)
-        print('t_total:',t_total)
-        print('averagefps:',n/t_total)
-        c.release()
-        self.out.release()
+
+        out.release()
+        if(self._v): print('(fps={:.2f},len={:.2f}): {}'.format(n/t_total,t_total,filepath))
+        return True # status that recording is done
 
 def check_video(path):
     vid = cv2.VideoCapture(path)
@@ -144,22 +141,43 @@ def check_video(path):
     vid.release()
 
 def choose_video_source():
-    # todo
-    pass
+    """
+    Test the ports and returns a tuple with the available ports and the ones that are working.
+    """
+    non_working_ports = []
+    dev_port = 0
+    working_ports = []
+    available_ports = []
+    print('checking available ports...')
+    while len(non_working_ports) < 6: # if there are more than 5 non working ports stop the testing.
+        camera = cv2.VideoCapture(dev_port)
+        if not camera.isOpened():
+            non_working_ports.append(dev_port)
+        else:
+            is_reading = camera.read()[0]
+            if is_reading: working_ports.append(dev_port)
+            else: available_ports.append(dev_port)
+        dev_port +=1
+    print('select desired video source:')
+    for i in working_ports: print(i)
+    return int(input('video source: '))
+
 
 if(__name__ == '__main__'):
     import argparse
     p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # todo: list available sources
-    p.add_argument('--saveloc', help='where to save video', default='data/vid.avi')
-    p.add_argument('--fps', default=10, type=int, help='fps')
+    p.add_argument('--fps', default=30, type=int, help='fps')
     p.add_argument('--res', type=str, default="1280x720", help='desired resolution')
+    p.add_argument('--srcpick',default=False,action='store_true',
+                   help='initialize with choice of sources')
     args = p.parse_args()
     _saveloc = args.saveloc
     _fps = args.fps
     _res = args.res
-    print('starting...')
-    v = VideoCapture(_saveloc,src=0,fps=_fps,res_wdht=_res) # , _fps, _res)
-    v.record_n_seconds(10)
-    print('done')
+    srcval = choose_video_source() if(args.srcpick) else 0
+    v = VideoCapture(src=srcval,fps=_fps,res_wdht=_res,verbose=True)
+    v.opencap()
+    v.record_n_seconds('data/vid.avi',2)
+    v.record_n_seconds('data/vid2.avi',2)
     check_video(_saveloc)
