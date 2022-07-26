@@ -118,8 +118,11 @@ class VideoCapture:
             if(time.time()-t_el>=p.per):
                 p.update(time.time()-t_el)
                 t_el = time.time()
-                out.write(frame)
+                self._imbuf.append(frame)
+                # out.write(frame)
                 n+=1
+            if(len(self._imbuf)>0):
+                out.write(self._imbuf.pop(0))
         t_total = time.time()-t0
 
         out.release()
@@ -135,9 +138,10 @@ def check_video(path):
         success,iframe = vid.read()
         frames.append(iframe)
     nframes2=len(frames)
-    print('official nframes:',nframes)
-    print('counted  nframes:',nframes2)
-    print('imgshape:',frames[0].shape)
+    msg = '{} nFrames={} counted={} imshape={}'.format(
+        path, nframes,nframes2,frames[0].shape
+    )
+    print(msg)
     vid.release()
 
 def choose_video_source():
@@ -167,17 +171,17 @@ if(__name__ == '__main__'):
     import argparse
     p = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # todo: list available sources
-    p.add_argument('--fps', default=30, type=int, help='fps')
+    p.add_argument('--fps', default=10, type=int, help='fps')
     p.add_argument('--res', type=str, default="1280x720", help='desired resolution')
     p.add_argument('--srcpick',default=False,action='store_true',
                    help='initialize with choice of sources')
     args = p.parse_args()
-    _saveloc = args.saveloc
     _fps = args.fps
     _res = args.res
     srcval = choose_video_source() if(args.srcpick) else 0
     v = VideoCapture(src=srcval,fps=_fps,res_wdht=_res,verbose=True)
     v.opencap()
-    v.record_n_seconds('data/vid.avi',2)
-    v.record_n_seconds('data/vid2.avi',2)
-    check_video(_saveloc)
+    v.record_n_seconds('data/out.avi',10)
+    v.record_n_seconds('data/out2.avi',10)
+    check_video('data/out.avi')
+    check_video('data/out2.avi')

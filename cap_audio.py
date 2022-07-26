@@ -7,11 +7,13 @@ import wave
 audio=pyaudio.PyAudio()
 
 class AudioCapture:
-    def __init__(self, src=0, format_=pyaudio.paInt16, rate=44100, bufsize=1024,nchannel=2,
+    def __init__(self, src=0, format_=pyaudio.paInt16, rate=44100, bufsize=1024,nchannel=1,
                  verbose=False):
         '''
         Given save location & audio properties, start recording audio
           filepath: where to save file. must end with .wav
+
+        note on default values: tuning for compatability with sattelkar hardware
         '''
         self._src = src
         self._audio = pyaudio.PyAudio()
@@ -42,7 +44,7 @@ class AudioCapture:
 
         nchunks = int(self._rate / self._bufsize * nseconds)
         for ichunk in range(nchunks):
-            data = self._cap.read(self._bufsize)
+            data = self._cap.read(self._bufsize,exception_on_overflow=False) # todo: to lose data?
             out.writeframes(data)
 
         out.close()
@@ -58,7 +60,7 @@ def choose_audio_source():
         if (idev.get('maxInputChannels')) > 0:
             iname = idev.get('name')
             devicetuples.append((i, iname))
-            print('{}: {}'.format(*devicetuples[-1]))
+            print('{}: {} (nchannels: {})'.format(*devicetuples[-1],idev.get('maxInputChannels')))
     return int(input('audio source: '))
 
 def check_audio(path):
