@@ -112,6 +112,7 @@ class VideoCapture:
         ret,frame = c.read()
         out.write(frame)
         n=1
+        nbufmax = 0
         while(self._cap.isOpened() and nmax > time.time() - t0):
             ret,frame = c.read()
             putText2(frame,tstamp())
@@ -122,6 +123,7 @@ class VideoCapture:
                 # out.write(frame)
                 n+=1
             if(len(self._imbuf)>0):
+                nbufmax = max(len(self._imbuf),nbufmax)
                 out.write(self._imbuf.pop(0))
         t_total = time.time()-t0
 
@@ -130,7 +132,7 @@ class VideoCapture:
             while(len(self._imbuf)>0):
                 out.write(self._imbuf.pop(0))
         out.release()
-        if(self._v): print('(fps={:.2f},len={:.2f}): {}'.format(n/t_total,t_total,filepath))
+        if(self._v): print(f'(fps={n/t_total:.2f},len={t_total:.2f},nbufmax={nbufmax}): {filepath}')
         return True # status that recording is done
 
 def check_video(path):
