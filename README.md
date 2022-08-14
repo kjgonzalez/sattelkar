@@ -25,6 +25,33 @@ note: desktop uses more memory
     * "B2 Console Autologin" >> console only
     * "B4 Desktop Autologin" >> GUI (desktop)
 
+#### Real-Time Clock vs "Fake HW Clock"
+The goal of the fake hw clock is to emulate an rtc on the inexpensive rpi. However, the two cannot run together, and thus only one can run at a time.
+
+**Deactivate Software Clock & Activate RTC:**
+* Provide commands: 
+    ```
+    sudo apt-get -y remove fake-hwclock
+    sudo update-rc.d -f fake-hwclock remove`
+    sudo systemctl disable fake-hwclock`
+    ```
+* `sudo vim /lib/udev/hwclock-set`: Disable following (add '#'):
+    ```
+    # if [ -e /run/systemd/system ] ; then
+    #   exit 0
+    # fi
+    ```
+* If needed, sync time with current internet time (DO NOT DO WITHOUT INTERNET CONNECTION, WILL GET WRONG VALUE): `sudo hwclock -w`
+* Confirm all values good: 
+   * `date` >> internet / pi time,
+   * `sudo hwclock -r` >> rtc time
+source: https://learn.adafruit.com/adding-a-real-time-clock-to-raspberry-pi/set-rtc-time
+
+**Deactivate RTC and turn on HW clock:**
+
+(todo)
+
+
 #### Bluetooth
 * disable: `sudo rfkill block bluetooth`
 * enable: `sudo rfkill unblock bluetooth`
