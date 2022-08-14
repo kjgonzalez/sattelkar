@@ -125,6 +125,10 @@ class VideoCapture:
                 out.write(self._imbuf.pop(0))
         t_total = time.time()-t0
 
+        if(len(self._imbuf)>0):
+            print('buffer not empty!')
+            while(len(self._imbuf)>0):
+                out.write(self._imbuf.pop(0))
         out.release()
         if(self._v): print('(fps={:.2f},len={:.2f}): {}'.format(n/t_total,t_total,filepath))
         return True # status that recording is done
@@ -173,15 +177,17 @@ if(__name__ == '__main__'):
     # todo: list available sources
     p.add_argument('--fps', default=10, type=int, help='fps')
     p.add_argument('--res', type=str, default="1280x720", help='desired resolution')
+    p.add_argument('--rectime', default=5, help='n seconds to record')
     p.add_argument('--srcpick',default=False,action='store_true',
                    help='initialize with choice of sources')
     args = p.parse_args()
     _fps = args.fps
     _res = args.res
+    _sec = args.rectime
     srcval = choose_video_source() if(args.srcpick) else 0
     v = VideoCapture(src=srcval,fps=_fps,res_wdht=_res,verbose=True)
     v.opencap()
-    v.record_n_seconds('data/out.avi',10)
-    v.record_n_seconds('data/out2.avi',10)
+    v.record_n_seconds('data/out.avi',_sec)
+    # v.record_n_seconds('data/out2.avi',_sec) # already know that recording restarts right away
     check_video('data/out.avi')
-    check_video('data/out2.avi')
+    # check_video('data/out2.avi')
