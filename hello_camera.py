@@ -1,10 +1,10 @@
 ''' basic webcam-like functionality, just show a preview window of what is seen '''
 
-import numpy as np
+# import numpy as np
 import cv2
 import time
 
-def putText2(im:np.ndarray, _txt:str, origin:tuple=None):
+def putText2(im, _txt:str, origin:tuple=None):
     '''
     Custom putText function. default is white-on-black, upper-left corner, 13px font
 
@@ -36,6 +36,9 @@ class RunningAverage:
 src = 0
 avgprint = True
 cap = cv2.VideoCapture(src)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,960)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
+
 print('press "q" to exit')
 t0 = time.time()
 ra = RunningAverage()
