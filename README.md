@@ -7,6 +7,9 @@ watch and listen to rockfall events on the sattelkar cirque
 * perhaps combine as single file???
 * 
 
+## Recommended Settings
+### Video 
+* option1: res=960x720, fps=30
 ## RPI-Specific Maintenance
 
 ### Connect to RPI in the field

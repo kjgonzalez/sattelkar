@@ -2,67 +2,95 @@
 use multiprocessing to capture both audio and video at the same time
 
 STAT-DESCRIPTION
-todo be able to choose source directly from AVCap
-todo record for a certain amount of seconds
-todo create N recordings with a simple forloop
+nope be able to choose source directly from CapAV - should be done in "selector", which saves to config
+done record for a certain amount of seconds
+nope: pass each capture object, already open, to record audio/videotodo creater "SourceSelector.py", allowing user to first go through config
+done be able to record 5s video
+done be able to record 5s audio
+done be able to record audio & video at the same time
+done a function or class that can record N seconds of data at a time
+todo create N recordings with forloop
 todo be able to splice together audio and video through ffmpeg (?)
-todo a function or class that can record N seconds of data at a time
+
+missing:
+
+note: general command for ffmpeg follows:
+ffmpeg -i VIDEO.avi -i AUDIO.wav -c:v copy -c:a aac ../OUTFILE.mp4
 '''
 
 import multiprocessing as mp
 import time
 import os
-from cap_audio import AudioCapture
-from cap_video import VideoCapture, tstamp
+from cap_audio import CaptureAudio
+from cap_video import CaptureVideo, tstamp
 
-def rec_audio(q_:mp.Queue,pathbase:str,duration:int,opencap):
-    a = AudioCapture()
+def _rec_audio(q_:mp.Queue,pathfile:str,duration:int,src:int,verbose=False):
+    ''' REQUIRED full function for audio thread '''
+    a = CaptureAudio(src=src)
     q_.put(a.opencap())
-
-    print('aud, current q len:',q_.qsize())
+    # print('aud, current q len:',q_.qsize())
+    if(verbose): print('audio ready')
     while(q_.qsize()<2):
         time.sleep(0.001) # wait a few seconds for sync
-    print('AUD STARTING')
-    a.record_n_seconds(pathbase+'.wav',duration)
+    if(verbose): print('AUD STARTING')
+    a.record_n_seconds(pathfile,duration) # user must give file extension
     q_.get() # remove object from queue
-    print('audio done')
+    # print('audio done')
 
-def rec_video(q_:mp.Queue,pathbase:str,duration:int,opencap):
-    v = VideoCapture()
+def _rec_video(q_:mp.Queue,pathfile:str,duration:int,src:int,fps:int,resWH:str,verbose=False):
+    ''' REQUIRED full function for video thread'''
+    v = CaptureVideo(src=src, fps=fps, resWH=resWH)
     q_.put(v.opencap())
-    print('vid, current q len:',q_.qsize())
+    # print('vid, current q len:',q_.qsize())
+    if(verbose): print('video ready')
     while(q_.qsize()<2):
         time.sleep(0.001) # wait a few seconds for sync
-    print('VID STARTING')
-    v.record_n_seconds(pathbase+'.avi',duration)
+    if(verbose): print('VID STARTING')
+    v.record_n_seconds(pathfile,duration) # user must give file extension
     q_.get() # remove object from queue
-    print('vid, current q len:',q_.qsize())
-    print('audio done')
+    # print('vid, current q len:',q_.qsize())
+    # print('video done')
 
+def record_n_seconds(path_folder,duration_s,
+                     a_src=2,v_src=0,v_fps=30,v_resWH='960x720'):
+    '''
+    Abstracted recording function. Handles both audio and video, given the basic sources and settings. Automatically
+      combines audio and video streams into single file. Inserts formatted timestamp into video. Output file name is
+      based on starting time of recording (not including delay of stream start)
 
-if(__name__ == '__main__'):
-
-    pathfolder = 'data/'
-    basename = os.path.abspath(os.path.join(pathfolder,tstamp(False)))
-
+    todo: name recording based on exact moment recording actually started
+    '''
     queue = mp.Queue()
     # using this to sync things means that the arguments aren't copied, only
     #   the objects. as long as you don't access to devices, you should be fine.
-    # todo: pass each capture object, already open, to record audio/video
-    pa = mp.Process(target=rec_audio,args=(queue,basename,5))
-    pv = mp.Process(target=rec_video,args=(queue,basename,5))
+    #
+    fpath_a = os.path.join(path_folder,'temp.wav')
+    fpath_v = os.path.join(path_folder,'temp.avi')
+    fpath_av = os.path.join(path_folder,f'{tstamp(withms=False)}.avi')
+    # fpath_v = path_folder+'temp.avi'
+    # fpath_av = path_folder+f'{tstamp(withms=False)}.avi'
+    pa = mp.Process(target=_rec_audio,args=(queue,fpath_a,duration_s,a_src))
+    pv = mp.Process(target=_rec_video,args=(queue,fpath_v,duration_s,v_src,v_fps,v_resWH))
 
-    print('starting...')
-    pv.start()
+    pv.start() # initialize queues
     pa.start()
-
-    pv.join()
+    pv.join() # when complete, join queues and unify two processes
     pa.join()
-    print('done')
+
+    # combine audio/video into single file, remove individual parts
+    os.system('ffmpeg -i {} -i {} -c:v copy -c:a aac {} {}'.format(
+        fpath_v,fpath_a,fpath_av,
+        '>/dev/null 2>&1' # warning / error message suppression
+    ))
+    os.remove(fpath_v)
+    os.remove(fpath_a)
+    print('done:',fpath_av)
 
 
-    # av = AVCap('data/',debug=True)
-    # av.record_n_seconds(10)
+if(__name__ == '__main__'):
+    folderpath = 'data/'
+    record_n_seconds(folderpath,5,2,0,30,'960x720')
+
 
 
 

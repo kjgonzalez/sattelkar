@@ -12,8 +12,13 @@ _fpath = 'data/hello_video.avi'
 
 cap = cv2.VideoCapture(_src)
 _fps = cap.get(cv2.CAP_PROP_FPS)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,960)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
+
+
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 _resolution = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+
 out = cv2.VideoWriter(_fpath, fourcc=fourcc, fps=_fps, frameSize=_resolution)
 
 print('starting...')

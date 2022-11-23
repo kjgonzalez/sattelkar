@@ -26,5 +26,5 @@ def recaudio(nsec=10):
     fw.close()
 
 print('starting...')
-recaudio(_tmax)
+recaudio(30)
 print('done')
