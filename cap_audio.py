@@ -77,7 +77,10 @@ def choose_audio_source():
             iname = idev.get('name')
             devicetuples.append((i, iname))
             print('{}: {} (nchannels: {})'.format(*devicetuples[-1],idev.get('maxInputChannels')))
-    return int(input('audio source: '))
+    res = input('audio source: ')
+    if(res == 'd'): return res
+    elif(res == ''): return res
+    return int(res)
 
 def check_audio(path):
     # todo: check properties of audio file created

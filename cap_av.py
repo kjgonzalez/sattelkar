@@ -64,9 +64,10 @@ def record_n_seconds(path_folder,duration_s,
     # using this to sync things means that the arguments aren't copied, only
     #   the objects. as long as you don't access to devices, you should be fine.
     #
-    fpath_a = os.path.join(path_folder,'temp.wav')
-    fpath_v = os.path.join(path_folder,'temp.avi')
-    fpath_av = os.path.join(path_folder,f'{tstamp(withms=False)}.avi')
+    istamp = tstamp(withms=False)
+    fpath_a = os.path.join(path_folder,f'{istamp}temp.wav')
+    fpath_v = os.path.join(path_folder,f'{istamp}temp.avi')
+    fpath_av = os.path.join(path_folder,f'{istamp}.avi')
     # fpath_v = path_folder+'temp.avi'
     # fpath_av = path_folder+f'{tstamp(withms=False)}.avi'
     pa = mp.Process(target=_rec_audio,args=(queue,fpath_a,duration_s,a_src))
@@ -85,6 +86,13 @@ def record_n_seconds(path_folder,duration_s,
     os.remove(fpath_v)
     os.remove(fpath_a)
     print('done:',fpath_av)
+
+'''
+idea: have them capture for specified time, then wait until both ready, then start 
+'''
+
+
+
 
 
 if(__name__ == '__main__'):

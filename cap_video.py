@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import os
 import time
+from common import tstamp
 
 class PeriodAuto:
     '''
@@ -34,14 +35,6 @@ class PeriodAuto:
     def per(self):
         ''' return actual period value to obtain desired period (on average) '''
         return self.des-self.correction
-
-def tstamp(withms=True):
-    # todo: figure out if should use utc -> yes
-    _t = time.time()
-    ms = str(round(_t-int(_t),3))[1:]
-    ms = '{:0<4}'.format(ms) # add 0's until have 3 digits + '.'
-    base = time.strftime('%Y%m%d_%H%M%S',time.localtime(_t))
-    return (base+ms) if(withms) else (base)
 
 def putText2(im:np.ndarray, _txt:str, origin:tuple=None):
     '''

@@ -21,14 +21,16 @@ done set frequency
 todo remove all debug settings
 todo add screen aliases for ease of use
 todo enable wifi connection
+todo consider running video/audio until both finish, not cutting off longer one
+done create path to export if doesn't already exist
 '''
 
 import os
 import argparse
 import time
-osp = os.path
 from cap_av import record_n_seconds
 from cap_video import tstamp
+osp  = os.path
 path_export='/media/pi/hdd5tb/data_sattelkar'
 
 def print_wTime(msg):
@@ -38,9 +40,7 @@ def print_wTime(msg):
 if(__name__=='__main__'):
     # initialize program
     p=argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    p.add_argument('--per',default=60,help='number of seconds per recording') # todo: change to 3600
-    p.add_argument('--path_export',default=path_export,help='location to save files to')
-    p.add_argument('--stopafter',default=-1,help='number of days to stop after. if -1, run without end')
+    p.add_argument('--stopafter',default='0s',help='number of seconds or days to stop after, e.g. 3600s or 5d')
     args=p.parse_args()
     print('SATTELKAR MONITOR PROGRAM\n')
     print('Arguments:')
