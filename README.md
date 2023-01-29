@@ -94,3 +94,8 @@ sudo apt-get install vim screen
     3. `pip install pipwin`
     4. `pipwin install pyaudio`
     5. `pip install opencv-python`
+* LINUX (bash):
+    1. `python -m venv ve_sattelkar`
+    2. `sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0`
+    3. `sudo apt-get install ffmpeg libav-tools`
+    4. `sudo pip install pyaudio`

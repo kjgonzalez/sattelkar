@@ -10,21 +10,6 @@ done record images at given rates / qualities
 done control user input: max fps, etc
 done: check that user didn't give non-integer period
 
-theme:
-goal:
-hook:
-plot:
-climax:
-general setting:
-specific setting 1:
-specific setting 2:
-master villain:
-minor villain:
-ally:
-villain motivation:
-
-
-
 '''
 
 import numpy as np
