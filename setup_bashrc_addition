@@ -1,10 +1,11 @@
 # Sattelkar special commands / aliases to append to ~/.bashrc
 # to use this file, add following line to ~/.bashrc (without '#'):
 # source ~/sattelkar/setup_bashrc_addition
-
+# 
 # note: how to access crontab, job scheduler: crontab -e
 # use of crontab: automatically start multiple jobs on device restart
 
+export SCREENDIR=$HOME/.screen
 alias ipython="ipython --nosep"
 # special screen commands
 alias sn="screen -S $arg1"  # new socket
