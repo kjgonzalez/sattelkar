@@ -11,18 +11,6 @@ general steps:
 2. activate audio and video capabilities
 3. locate save location
 4. begin recording
-
-stat-description
-done find export folder
-done record data
-done combine data
-done label correctly
-done set frequency
-todo remove all debug settings
-todo add screen aliases for ease of use
-todo enable wifi connection
-todo consider running video/audio until both finish, not cutting off longer one
-done create path to export if doesn't already exist
 '''
 
 import os
@@ -40,7 +28,10 @@ def print_wTime(msg):
 if(__name__=='__main__'):
     # initialize program
     p=argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    p.add_argument('--stopafter',default='0s',help='number of seconds or days to stop after, e.g. 3600s or 5d')
+    p.add_argument('--per',default=3600,help='number of seconds per recording') # todo: change to 3600
+    p.add_argument('--path_export',default=path_export,help='location to save files to')
+    p.add_argument('--stopafter',default=-1,help='number of days to stop after. if -1, run without end')
+    # p.add_argument('--stopafter',default='0s',help='number of seconds or days to stop after, e.g. 3600s or 5d')
     args=p.parse_args()
     print('SATTELKAR MONITOR PROGRAM\n')
     print('Arguments:')

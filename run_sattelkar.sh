@@ -6,9 +6,8 @@
 #
 #   command for cron: @reboot /bin/bash /home/pi/sattelkar/run_sattelkar.sh
 
-#screen -d -S sattelkar -m /home/pi/sattelkar/ve_sattelkar/bin/python /home/pi/sattelkar/sattelkar_main.py
 
-sleep 15 # allow external hard drive to become accessible
+sleep 30 # allow external hard drive to be checked & become accessible
 pathrestarts=/media/pi/hdd5tb/restarts.txt
 rightnow=$(date)
 
@@ -19,7 +18,9 @@ else
   echo "$rightnow" >> "$pathrestarts"
   chmod 700 ~/.screen
   export SCREENDIR=/home/pi/.screen
-  /usr/bin/screen -d -S test -m watch -n 5 "df -h"
+  #/usr/bin/screen -d -S test -m watch -n 5 "df -h"
+  screen -d -S sattelkar -m /home/pi/sattelkar/ve_sattelkar/bin/python /home/pi/sattelkar/sattelkar_main.py --per 3600
+
 fi
 
 # eof
