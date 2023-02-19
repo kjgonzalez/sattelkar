@@ -104,7 +104,6 @@ class CaptureVideo:
         self._imht = int(resWH.split('x')[1])
         assert self._imwd >= self._imht, "invalid resolution, wd >= ht"
         self._src = src
-        self._imbuf = []
         self._cap:cv2.VideoCapture = None
         self._v=verbose
 
@@ -127,9 +126,7 @@ class CaptureVideo:
         nmax = float(nseconds)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         c = self._cap # convenience
-        res = (int(c.get(cv2.CAP_PROP_FRAME_WIDTH)),int(c.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         # print('cap res (W,H):',res)
-        out = cv2.VideoWriter(filepath, fourcc=fourcc, fps=self._fps, frameSize=res)
 
 
         frame:np.ndarray = None
@@ -137,28 +134,36 @@ class CaptureVideo:
 
         t_el = time.time()
         t0 = time.time()
+        frames = [] # rather than save each frame to file, only save at end of recording
         ret,frame = c.read()
-        out.write(frame)
+        putText2(frame,tstamp())
+        frames.append(frame)
         n=1
         nbufmax = 0
         while(self._cap.isOpened() and nmax > time.time() - t0):
             ret,frame = c.read()
-            putText2(frame,tstamp()) # todo: is it in the putText2 function?
+            putText2(frame,tstamp())
             if(time.time()-t_el>=p.per):
                 p.update(time.time()-t_el)
                 t_el = time.time()
-                self._imbuf.append(frame)
                 # out.write(frame)
+                frames.append(frame)
                 n+=1
-            if(len(self._imbuf)>0):
-                nbufmax = max(len(self._imbuf),nbufmax)
-                out.write(self._imbuf.pop(0))
+            # if(len(self._imbuf)>0):
+            #     nbufmax = max(len(self._imbuf),nbufmax)
+            #     out.write(self._imbuf.pop(0))
         t_total = time.time()-t0
 
-        if(len(self._imbuf)>0):
-            print('finished, but buffer not empty!')
-            while(len(self._imbuf)>0):
-                out.write(self._imbuf.pop(0))
+        # if(len(self._imbuf)>0):
+        #     print('finished, but buffer not empty!')
+        #     while(len(self._imbuf)>0):
+        #         out.write(self._imbuf.pop(0))
+
+        # save all data
+        res = (int(c.get(cv2.CAP_PROP_FRAME_WIDTH)),int(c.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        out = cv2.VideoWriter(filepath, fourcc=fourcc, fps=self._fps, frameSize=res)
+        for iframe in frames:
+            out.write(iframe)
         out.release()
         if(self._v): print(f'(fps={n/t_total:.2f},len={t_total:.2f},nbufmax={nbufmax}): {filepath}')
         return True # status that recording is done

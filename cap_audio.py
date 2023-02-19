@@ -1,6 +1,5 @@
 '''
 record audio for a specified amount of time
-todo: do not use '*' importing
 '''
 
 from ctypes import * # error / warning suppression
@@ -53,16 +52,22 @@ class CaptureAudio:
     def record_n_seconds(self,filepath:str, nseconds:int):
         ''' asking to record n seconds is really asking to record a number of chunks '''
         assert '.wav' in filepath, "invalid file format"
+
+        nchunks = int(self._rate / self._bufsize * nseconds)
+        frames=[]
+
+        for ichunk in range(nchunks):
+            data = self._cap.read(self._bufsize,exception_on_overflow=False) # todo: to lose data?
+            frames.append(data)
+            # out.writeframes(data)
+
+        # save all data
         out = wave.open(filepath, 'wb')
         out.setnchannels(self._nchannel)
         out.setsampwidth(audio.get_sample_size(self._format))
         out.setframerate(self._rate)  # initialize audio file
-
-        nchunks = int(self._rate / self._bufsize * nseconds)
-        for ichunk in range(nchunks):
-            data = self._cap.read(self._bufsize,exception_on_overflow=False) # todo: to lose data?
-            out.writeframes(data)
-
+        for iframe in frames:
+            out.writeframes(iframe)
         out.close()
         if(self._v): print(f'out: {filepath}')
 
