@@ -11,6 +11,6 @@ if(__name__=='__main__'):
         with open(path,'a') as f:
             f.write(str(tstamp())+'\n')
         print(tstamp())
-        time.sleep(30)
+        time.sleep(300)
 # eof
 

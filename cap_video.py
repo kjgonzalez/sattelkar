@@ -123,6 +123,7 @@ class CaptureVideo:
 
     def record_n_seconds(self,filepath:str,nseconds:int):
         assert os.path.splitext(filepath)[1] in ['.avi','.mp4'], "invalid format, avi or mp4"
+        print('vid, path:',filepath) # delme
         nmax = float(nseconds)
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         c = self._cap # convenience
@@ -142,11 +143,11 @@ class CaptureVideo:
         nbufmax = 0
         while(self._cap.isOpened() and nmax > time.time() - t0):
             ret,frame = c.read()
-            putText2(frame,tstamp())
             if(time.time()-t_el>=p.per):
                 p.update(time.time()-t_el)
                 t_el = time.time()
                 # out.write(frame)
+                putText2(frame,tstamp())
                 frames.append(frame)
                 n+=1
             # if(len(self._imbuf)>0):
@@ -162,6 +163,7 @@ class CaptureVideo:
         # save all data
         res = (int(c.get(cv2.CAP_PROP_FRAME_WIDTH)),int(c.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         out = cv2.VideoWriter(filepath, fourcc=fourcc, fps=self._fps, frameSize=res)
+        print('vid, nframes:',len(frames))
         for iframe in frames:
             out.write(iframe)
         out.release()
@@ -177,14 +179,16 @@ if(__name__ == '__main__'):
     p.add_argument('--rectime', default=5, help='n seconds to record')
     p.add_argument('--srcpick',default=False,action='store_true',
                    help='initialize with choice of sources')
+    p.add_argument('--out',default='data',help='where to store output')
     args = p.parse_args()
     _fps = args.fps
     _res = args.resWH
     _rectime = args.rectime
+    _pathout = args.out
     srcval = choose_video_source() if(args.srcpick) else 0
     v = CaptureVideo(src=srcval, fps=_fps, resWH=_res, verbose=True)
     v.opencap()
-    v.record_n_seconds('data/out.avi',_rectime)
+    v.record_n_seconds(os.path.join(_pathout,'out.avi'),_rectime)
     v.closecap()
 
 # eof

@@ -87,17 +87,11 @@ def record_n_seconds(path_folder,duration_s,
     os.remove(fpath_a)
     print('done:',fpath_av)
 
-'''
-idea: have them capture for specified time, then wait until both ready, then start 
-'''
-
-
-
-
 
 if(__name__ == '__main__'):
-    folderpath = 'data/'
-    record_n_seconds(folderpath,5,2,0,30,'960x720')
+    folderpath = '/media/pi/hdd5tb/data_sattelkar'
+    duration = 10 # s
+    record_n_seconds(folderpath,duration,a_src=2,v_src=0,v_fps=30,v_resWH='960x720')
 
 
 
